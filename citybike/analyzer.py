@@ -41,6 +41,7 @@ class BikeShareSystem:
         self.trips = pd.read_csv(DATA_DIR / "trips.csv")
         self.stations = pd.read_csv(DATA_DIR / "stations.csv")
         self.maintenance = pd.read_csv(DATA_DIR / "maintenance.csv")
+
         print(f"Loaded trips: {self.trips.shape}")
         print(f"Loaded stations: {self.stations.shape}")
         print(f"Loaded maintenance: {self.maintenance.shape}")
@@ -196,8 +197,44 @@ class BikeShareSystem:
         """Write a summary text report to output/summary_report.txt.
 
         TODO:
-            - Call each analytics method
-            - Format the results as readable text
-            - Write to file
+            - Uncomment and complete each section below
+            - Add results from remaining analytics methods
         """
-        raise NotImplementedError("generate_summary_report")
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        report_path = OUTPUT_DIR / "summary_report.txt"
+
+        lines: list[str] = []
+        lines.append("=" * 60)
+        lines.append("  CityBike — Summary Report")
+        lines.append("=" * 60)
+
+        # --- Q1: Overall summary ---
+        summary = self.total_trips_summary()
+        lines.append("\n--- Overall Summary ---")
+        lines.append(f"  Total trips       : {summary['total_trips']}")
+        lines.append(f"  Total distance    : {summary['total_distance_km']} km")
+        lines.append(f"  Avg duration      : {summary['avg_duration_min']} min")
+
+        # --- Q2: Top start stations ---
+        # TODO: uncomment once top_start_stations() is implemented
+        # top_stations = self.top_start_stations()
+        # lines.append("\n--- Top 10 Start Stations ---")
+        # lines.append(top_stations.to_string(index=False))
+
+        # --- Q3: Peak usage hours ---
+        # TODO: uncomment once peak_usage_hours() is implemented
+        # hours = self.peak_usage_hours()
+        # lines.append("\n--- Peak Usage Hours ---")
+        # lines.append(hours.to_string())
+
+        # --- Q9: Maintenance cost by bike type ---
+        # TODO: uncomment once maintenance_cost_by_bike_type() is implemented
+        # maint_cost = self.maintenance_cost_by_bike_type()
+        # lines.append("\n--- Maintenance Cost by Bike Type ---")
+        # lines.append(maint_cost.to_string())
+
+        # TODO: add more sections for Q4–Q8, Q10–Q14 …
+
+        report_text = "\n".join(lines) + "\n"
+        report_path.write_text(report_text)
+        print(f"Report saved to {report_path}")
