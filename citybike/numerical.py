@@ -15,9 +15,7 @@ import numpy as np
 # Distance calculations
 # ---------------------------------------------------------------------------
 
-def station_distance_matrix(
-    latitudes: np.ndarray, longitudes: np.ndarray
-) -> np.ndarray:
+def station_distance_matrix (latitudes: np.ndarray, longitudes: np.ndarray) -> np.ndarray:
     """Compute pairwise Euclidean distances between stations.
 
     Uses a simplified flat-earth distance model:
@@ -48,7 +46,12 @@ def station_distance_matrix(
     # Step 3: combine with Euclidean formula
     # np.sqrt(lat_diff**2 + lon_diff**2)
 
-    raise NotImplementedError("station_distance_matrix")
+    lat_diff = latitudes[:, np.newaxis] - latitudes[np.newaxis, :]
+    lon_diff = longitudes[:, np.newaxis] - longitudes[np.newaxis, :]
+
+    dist_matrix = np.sqrt(lat_diff**2 + lon_diff**2)
+
+    return dist_matrix
 
 
 # ---------------------------------------------------------------------------
@@ -60,6 +63,7 @@ def trip_duration_stats(durations: np.ndarray) -> dict[str, float]:
 
     Args:
         durations: 1-D array of trip durations in minutes.
+        for ex. durations = np.array([10, 20, 30, 40])
 
     Returns:
         Dict with keys: mean, median, std, p25, p75, p90.
@@ -71,7 +75,9 @@ def trip_duration_stats(durations: np.ndarray) -> dict[str, float]:
         "mean": float(np.mean(durations)),
         "median": float(np.median(durations)),
         "std": float(np.std(durations)),
-        # TODO: add p25, p75, p90 using np.percentile
+        "p25": float(np.percentile(durations, 25)),
+        "p75": float(np.percentile(durations, 75)),
+        "p90": float(np.percentile(durations, 90)),
     }
 
 
@@ -103,7 +109,17 @@ def detect_outliers_zscore(
         5. Return boolean:    np.abs(z) > threshold
     """
 
-    raise NotImplementedError("detect_outliers_zscore")
+    mean = np.mean(values)
+    std = np.std(values)
+
+    if std == 0: #dh. if all values are identical
+        return np.zeros_like(values, dtype=bool)
+    #   zeros_like means we return an array of the same shape as values, filled with False
+
+    z = (values - mean) / std
+
+    return np.abs(z) > threshold
+    #result will be True for outliers, False for inliers
 
 
 # ---------------------------------------------------------------------------
@@ -135,11 +151,7 @@ def calculate_fares(
         The fare for a single trip is:
             fare = unlock_fee + (per_minute * duration) + (per_km * distance)
 
-        With NumPy, you can compute this for ALL trips at once because
-        arithmetic on arrays is element-wise:
-            fares = unlock_fee + per_minute * durations + per_km * distances
-
-        This single line replaces a Python for-loop over every trip.
+ 
 
     Example:
         >>> durations = np.array([10, 20, 30])
@@ -150,5 +162,9 @@ def calculate_fares(
         # trip 2: 1.0 + 0.15*20 + 0.10*5.0 = 4.50
         # trip 3: 1.0 + 0.15*30 + 0.10*8.0 = 6.30
     """
+    # With NumPy, you can compute this for ALL trips at once because
+    # fares = unlock_fee + per_minute * durations + per_km * distances
+    # This single line replaces a Python for-loop over every trip.
 
-    raise NotImplementedError("calculate_fares")
+    fares = unlock_fee + per_minute * durations + per_km * distances
+    return fares
