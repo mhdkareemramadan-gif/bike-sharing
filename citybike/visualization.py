@@ -74,14 +74,32 @@ def plot_monthly_trend(trips: pd.DataFrame) -> None:
         - Plot a line chart
         - Save as 'monthly_trend.png'
     """
-    raise NotImplementedError("plot_monthly_trend")
+    df = trips.copy()
+
+    # ensure start_time is datetime
+    df["start_time"] = pd.to_datetime(df["start_time"], errors="coerce")
+
+    # Extract year-month
+    df["year_month"] = df["start_time"].dt.to_period("M").astype(str)
+
+    # Group by year_month and count trips
+    monthly_counts = df["year_month"].value_counts().sort_index()
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.plot(monthly_counts.index, monthly_counts.values, marker="o")
+    ax.set_title("Monthly Trip Trend")
+    ax.set_xlabel("Month")
+    ax.set_ylabel("Number of Trips")
+    ax.tick_params(axis="x", rotation=45)
+
+    _save_figure(fig, "monthly_trend.png")
 
 
 # ---------------------------------------------------------------------------
 # 3. Histogram — trip duration distribution
 # ---------------------------------------------------------------------------
 
-def plot_duration_histogram(trips: pd.DataFrame) -> None:
+def plot_duration_histogram(trips: pd.DataFrame):
     """Histogram of trip durations.
 
     TODO:
@@ -90,7 +108,17 @@ def plot_duration_histogram(trips: pd.DataFrame) -> None:
         - Add title, axis labels
         - Save as 'duration_histogram.png'
     """
-    raise NotImplementedError("plot_duration_histogram")
+    # Check for missing values and check if it is numeric
+    durations = pd.to_numeric(trips["duration_minutes"], errors="coerce").dropna()
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.hist(durations, bins=30)
+    ax.set_title("Trip Duration Distribution")
+    ax.set_xlabel("Duration (minutes)")
+    ax.set_ylabel("Number of Trips")
+
+    _save_figure(fig, "duration_histogram.png")
+
 
 
 # ---------------------------------------------------------------------------
@@ -106,4 +134,23 @@ def plot_duration_by_user_type(trips: pd.DataFrame) -> None:
         - Add title, axis labels
         - Save as 'duration_by_user_type.png'
     """
-    raise NotImplementedError("plot_duration_by_user_type")
+    
+    df = trips.copy()
+    df["duration_minutes"] = pd.to_numeric(df["duration_minutes"], errors="coerce")
+    df = df.dropna(subset=["duration_minutes", "user_type"])
+    # subset means we only keep rows with valid duration and user_type
+
+    # make a list of arrays for each user type
+    groups = []
+    labels = []
+    for user_type, group in df.groupby("user_type"):
+        labels.append(user_type)
+        groups.append(group["duration_minutes"].values)
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.boxplot(groups, labels=labels, showfliers=True)
+    ax.set_title("Trip Duration by User Type")
+    ax.set_xlabel("User Type")
+    ax.set_ylabel("Duration (minutes)")
+
+    _save_figure(fig, "duration_by_user_type.png")

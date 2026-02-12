@@ -11,7 +11,7 @@ Entry point that orchestrates the full pipeline:
     6. Export summary report
 
 Usage:
-    python main.py
+    python main.py.ok
 """
 
 from analyzer import BikeShareSystem
@@ -94,8 +94,8 @@ def main() -> None:
     print("\n>>> Running pricing calculations …")
 
     from pricing import CasualPricing, MemberPricing, PeakHourPricing
-    from numerical import calculate_fares
-    import numpy as np
+    # from numerical import calculate_fares
+    # import numpy as np
 
     casual_strategy = CasualPricing()
     # member_strategy = MemberPricing()
@@ -140,6 +140,11 @@ def main() -> None:
     # plot_monthly_trend(system.trips)
     # plot_duration_histogram(system.trips)
     # plot_duration_by_user_type(system.trips)
+    from visualization import plot_monthly_trend, plot_duration_histogram, plot_duration_by_user_type
+    plot_monthly_trend(system.trips)
+    plot_duration_histogram(system.trips)
+    plot_duration_by_user_type(system.trips)
+
 
     # Step 6 — Report
     # TODO: system.generate_summary_report()
