@@ -92,23 +92,40 @@ class BikeShareSystem:
         # --- Step 2: Parse dates ---
         # TODO: convert start_time, end_time to datetime
         # self.trips["start_time"] = pd.to_datetime(...)
+        self.trips["start_time"] = pd.to_datetime(self.trips["start_time"], errors="coerce")
+        self.trips["end_time"] = pd.to_datetime(self.trips["end_time"], errors="coerce")
+        #coerce : any invalid dates to NaT
 
         # --- Step 3: Convert numeric columns ---
         # TODO: ensure duration_minutes and distance_km are float
+        self.trips["duration_minutes"] = pd.to_numeric(self.trips["duration_minutes"], errors="coerce")
+        self.trips["distance_km"] = pd.to_numeric(self.trips["distance_km"], errors="coerce")
+
 
         # --- Step 4: Handle missing values ---
         # TODO: decide on a strategy and document it
         # Example: self.trips["duration_minutes"].fillna(..., inplace=True)
+        self.trips["status"] = self.trips["status"].fillna("unknown")
+        self.trips["duration_minutes"] = self.trips["duration_minutes"].fillna(self.trips["duration_minutes"].mean())
+        self.trips["distance_km"] = self.trips["distance_km"].fillna(self.trips["distance_km"].mean())
+
 
         # --- Step 5: Remove invalid entries ---
         # TODO: drop rows where end_time < start_time
+        self.trips = self.trips[self.trips["end_time"] >= self.trips["start_time"]]
+
 
         # --- Step 6: Standardize categoricals ---
         # TODO: e.g. self.trips["status"].str.lower().str.strip()
+        self.trips["status"] = self.trips["status"].str.lower().str.strip()
+        self.trips["user_type"] = self.trips["user_type"].str.lower().str.strip()
+
 
         # --- Step 7: Export cleaned datasets ---
-        # self.trips.to_csv(DATA_DIR / "trips_clean.csv", index=False)
-        # self.stations.to_csv(DATA_DIR / "stations_clean.csv", index=False)
+        self.trips.to_csv(DATA_DIR / "trips_clean.csv", index=False)
+        self.stations.to_csv(DATA_DIR / "stations_clean.csv", index=False)
+        self.maintenance.to_csv(DATA_DIR / "maintenance_clean.csv", index=False)
+        # index=False: it means that the row numbers (0, 1, 2, ...) will not be included in the output CSV file.
 
         print("Cleaning complete.")
 
@@ -116,7 +133,7 @@ class BikeShareSystem:
     # Analytics — Business Questions
     # ------------------------------------------------------------------
 
-    def total_trips_summary(self) -> dict:
+    def total_trips_summary(self):
         """Q1: Total trips, total distance, average duration.
 
         Returns:
@@ -126,71 +143,152 @@ class BikeShareSystem:
         return {
             "total_trips": len(df),
             "total_distance_km": round(df["distance_km"].sum(), 2),
+                #rounding to 2 decimal places for better readability
             "avg_duration_min": round(df["duration_minutes"].mean(), 2),
         }
 
-    def top_start_stations(self, n: int = 10) -> pd.DataFrame:
-        """Q2: Top *n* most popular start stations.
 
-        TODO: use value_counts() or groupby on start_station_id,
-              merge with station names.
-        """
+    # def top_start_stations(self, n: int = 10) -> pd.DataFrame:
+    #     """Q2: Top *n* most popular start stations.
+    #     : use value_counts() or groupby on start_station_id,
+    #           merge with station names.
+    #     """
         # Example start:
-        # counts = self.trips["start_station_id"].value_counts().head(n)
-        raise NotImplementedError("top_start_stations")
+        # counts = (
+        #     self.trips["start_station_id"]
+        #     .value_counts()
+        #     .head(n)
+        #     .reset_index()
+        # )
 
-    def peak_usage_hours(self) -> pd.Series:
+        # counts.columns = ["station_id", "trip_count"]
+
+        # result = counts.merge(self.stations, on="station_id", how="left")
+
+        # return result[["station_name", "trip_count"]]
+
+    
+
+
+    def peak_usage_hours(self):
         """Q3: Trip count by hour of day.
 
         TODO: extract hour from start_time and count trips per hour.
         """
-        raise NotImplementedError("peak_usage_hours")
+        df = self.trips.copy()
+        df["hour"] = df["start_time"].dt.hour
+        return df["hour"].value_counts().sort_index()
 
-    def busiest_day_of_week(self) -> pd.Series:
+
+    def busiest_day_of_week(self):
         """Q4: Trip count by day of week.
 
         TODO: extract day-of-week from start_time, count.
         """
-        raise NotImplementedError("busiest_day_of_week")
+        df = self.trips.copy()
+
+        df["day_name"] = df["start_time"].dt.day_name()
+
+        return df["day_name"].value_counts()
+    
 
     def avg_distance_by_user_type(self) -> pd.Series:
         """Q5: Average trip distance grouped by user type."""
-        raise NotImplementedError("avg_distance_by_user_type")
+        return self.trips.groupby("user_type")["distance_km"].mean().round(2)
 
-    def monthly_trip_trend(self) -> pd.Series:
+
+    def monthly_trip_trend(self):
         """Q7: Monthly trip counts over time.
 
         TODO: extract year-month from start_time, group, count.
         """
-        raise NotImplementedError("monthly_trip_trend")
+        df = self.trips.copy()
 
-    def top_active_users(self, n: int = 15) -> pd.DataFrame:
+        df["year_month"] = df["start_time"].dt.to_period("M")
+
+        trend = df["year_month"].value_counts().sort_index()
+
+        return trend
+    #to_period means we are converting the start_time to a monthly period
+
+
+    def top_active_users(self, n: int = 15):
         """Q8: Top *n* most active users by trip count.
 
         TODO: group by user_id, count trips, sort descending.
         """
-        raise NotImplementedError("top_active_users")
+        df = self.trips.copy()
 
-    def maintenance_cost_by_bike_type(self) -> pd.Series:
+        counts = (
+            df.groupby("user_id")
+            .size()
+            #size means we are counting trips(rows) per user
+            .reset_index(name="trip_count")
+            #.reset_index(name="trip_count") means we are converting the Series back to a DataFrame
+            .sort_values("trip_count", ascending=False)
+            .head(n)
+        )
+
+        return counts
+    
+
+
+    def maintenance_cost_by_bike_type(self):
         """Q9: Total maintenance cost per bike type.
 
         TODO: group maintenance by bike_type, sum cost.
         """
-        raise NotImplementedError("maintenance_cost_by_bike_type")
+        df = self.maintenance.copy()
 
-    def top_routes(self, n: int = 10) -> pd.DataFrame:
+        # df["cost"] = pd.to_numeric(df["cost"], errors="coerce")
+        #pd.to_numeric(...) means we are converting the cost column to numeric, forcing errors to NaN
+        #errors='coerce' means that any non-numeric values will be replaced with NaN
+
+        result = df.groupby("bike_type")["cost"].sum().round(2)
+
+        return result
+    
+
+
+    def top_routes(self, n: int = 10):
         """Q10: Most common start→end station pairs.
 
         TODO: group by (start_station_id, end_station_id), count, sort.
         """
-        raise NotImplementedError("top_routes")
+        df = self.trips.copy()
+
+        routes = (
+            df.groupby(["start_station_id", "end_station_id"])
+            .size()
+            .reset_index(name="trip_count")
+            .sort_values("trip_count", ascending=False)
+            .head(n)
+        )
+
+        return routes
 
     # ------------------------------------------------------------------
-    # Add more analytics methods here (Q6, Q11–Q14)
+    # Add more analytics methods here
     # ------------------------------------------------------------------
+    # Distribution of trips by user type.
+    def user_type_distribution(self):
+        return self.trips["user_type"].value_counts()
+    
 
-    # ------------------------------------------------------------------
-    # Reporting
+    # Distribution of trips by status.
+    def status_distribution(self):
+        return self.trips["status"].value_counts()
+
+    # Longest trips by duration.
+    def longest_trips(self, n: int = 10):
+        cols = ["user_id", "bike_type", "start_time", "end_time", "duration_minutes", "distance_km"]
+        return self.trips[cols].sort_values("duration_minutes", ascending=False).head(n)
+
+
+
+
+
+    # ------------------------ Reporting ------------------------------------------
     # ------------------------------------------------------------------
 
     def generate_summary_report(self) -> None:
@@ -200,6 +298,8 @@ class BikeShareSystem:
             - Uncomment and complete each section below
             - Add results from remaining analytics methods
         """
+    
+
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         report_path = OUTPUT_DIR / "summary_report.txt"
 
@@ -207,6 +307,11 @@ class BikeShareSystem:
         lines.append("=" * 60)
         lines.append("  CityBike — Summary Report")
         lines.append("=" * 60)
+
+        # lines.append means we are adding a new line to the list of lines that will make up our report.
+        # Each call to lines.append() adds a new line of text to the report.
+        # For example, lines.append("=" * 60) adds a line of 60 equal signs as a separator,
+        # and lines.append("  CityBike — Summary Report") adds the title of the report.
 
         # --- Q1: Overall summary ---
         summary = self.total_trips_summary()
@@ -223,18 +328,58 @@ class BikeShareSystem:
 
         # --- Q3: Peak usage hours ---
         # TODO: uncomment once peak_usage_hours() is implemented
-        # hours = self.peak_usage_hours()
-        # lines.append("\n--- Peak Usage Hours ---")
-        # lines.append(hours.to_string())
+        hours = self.peak_usage_hours()
+        lines.append("\n--- Peak Usage Hours (Trips per Hour) ---")
+        lines.append(hours.to_string()) 
 
         # --- Q9: Maintenance cost by bike type ---
         # TODO: uncomment once maintenance_cost_by_bike_type() is implemented
-        # maint_cost = self.maintenance_cost_by_bike_type()
-        # lines.append("\n--- Maintenance Cost by Bike Type ---")
-        # lines.append(maint_cost.to_string())
+        maint_cost = self.maintenance_cost_by_bike_type()
+        lines.append("\n--- Maintenance Cost by Bike Type ---")
+        lines.append(maint_cost.to_string())
+
+        # --- Q4: Busiest day of week ---
+        days = self.busiest_day_of_week()
+        lines.append("\n--- Trips per Day of Week ---")
+        lines.append(days.to_string())
+
+        # --- Q5: Avg distance by user type ---
+        avg_dist = self.avg_distance_by_user_type()
+        lines.append("\n--- Avg Distance by User Type (km) ---")
+        lines.append(avg_dist.to_string())
+
+        # --- Q7: Monthly trip trend ---
+        monthly = self.monthly_trip_trend()
+        lines.append("\n--- Monthly Trip Trend ---")
+        lines.append(monthly.to_string())
+
+        # --- Q8: Top active users ---
+        top_users = self.top_active_users()
+        lines.append("\n--- Top Active Users ---")
+        lines.append(top_users.to_string(index=False))
+
+
+        # --- Q10: Top routes ---
+        routes = self.top_routes()
+        lines.append("\n--- Top Routes (Start -> End) ---")
+        lines.append(routes.to_string(index=False))
 
         # TODO: add more sections for Q4–Q8, Q10–Q14 …
 
+        # --- User Type Distribution ---
+        lines.append("\n--- Trips by User Type ---")
+        lines.append(self.user_type_distribution().to_string())
+
+        # --- Status Distribution ---
+        lines.append("\n--- Trips by Status ---")
+        lines.append(self.status_distribution().to_string())
+
+        # --- Longest Trips ---
+        lines.append("\n--- Longest Trips ---")
+        lines.append(self.longest_trips().to_string(index=False))
+
+
         report_text = "\n".join(lines) + "\n"
         report_path.write_text(report_text)
+        
         print(f"Report saved to {report_path}")
