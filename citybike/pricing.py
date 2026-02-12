@@ -52,9 +52,7 @@ class CasualPricing(PricingStrategy):
     PER_MINUTE = 0.15
     PER_KM = 0.10
 
-    def calculate_cost(
-        self, duration_minutes: float, distance_km: float
-    ) -> float:
+    def calculate_cost(self, duration_minutes: float, distance_km: float):
         return (
             self.UNLOCK_FEE
             + self.PER_MINUTE * duration_minutes
@@ -75,11 +73,12 @@ class MemberPricing(PricingStrategy):
     PER_MINUTE = 0.08
     PER_KM = 0.05
 
-    def calculate_cost(
-        self, duration_minutes: float, distance_km: float
-    ) -> float:
+    def calculate_cost(self, duration_minutes: float, distance_km: float):
         # TODO: implement the member pricing formula
-        raise NotImplementedError("MemberPricing.calculate_cost")
+        return (
+           self.PER_MINUTE * duration_minutes
+         + self.PER_KM * distance_km
+        )
 
 
 class PeakHourPricing(PricingStrategy):
@@ -96,4 +95,5 @@ class PeakHourPricing(PricingStrategy):
         self, duration_minutes: float, distance_km: float
     ) -> float:
         # TODO: implement peak-hour pricing
-        raise NotImplementedError("PeakHourPricing.calculate_cost")
+        base_cost = CasualPricing().calculate_cost(duration_minutes, distance_km)
+        return base_cost * self.MULTIPLIER
