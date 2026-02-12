@@ -1,87 +1,135 @@
-# CityBike — Bike-Sharing Analytics Platform
+# 🚲 CityBike — Bike-Sharing Analytics Platform
 
-A Python-based analytics platform for a fictional city bike-sharing service.
-This project demonstrates object-oriented design, data analysis with Pandas & NumPy,
-custom algorithms, and Matplotlib visualizations.
+## 📌 Overview
 
-## Project Structure
+**CityBike** is a Python data-analytics project that analyzes bike-sharing usage, operations, and business metrics.
+The platform loads raw CSV data, cleans and analyzes trips, generates statistics, creates visualizations, and exports a summary report.
+
+The goal of this project is to demonstrate practical skills in:
+
+* Data cleaning and preprocessing with **Pandas**
+* Numerical computation using **NumPy**
+* Data visualization using **Matplotlib**
+* Object-Oriented Programming concepts
+* Git workflow and structured project development
+
+---
+
+## ⚙️ Features
+
+### 📊 Data Processing & Analytics
+
+* Load and inspect bike-sharing datasets
+* Clean missing values and invalid records
+* Compute business insights such as:
+
+  * Peak usage hours
+  * Busiest days of the week
+  * Monthly trip trends
+  * Top active users
+  * Most common routes
+  * Maintenance cost analysis
+
+### 💰 Pricing (Strategy Pattern)
+
+* Casual pricing strategy
+* Member pricing strategy
+* Peak hour pricing example
+* Example single-trip cost calculation
+
+### 📈 Visualizations
+
+The project generates and saves charts automatically:
+
+* Bar chart — Trips per station
+* Line chart — Monthly trip trend
+* Histogram — Trip duration distribution
+* Box plot — Duration by user type
+
+All figures are exported to:
+
+```
+output/figures/
+```
+
+### 📝 Reporting
+
+A full analytics summary is exported to:
+
+```
+output/summary_report.txt
+```
+
+---
+
+## 🗂️ Project Structure
 
 ```
 citybike/
-├── main.py              # Entry point — runs the full pipeline
-├── models.py            # OOP domain classes (Entity, Bike, Station, …)
-├── analyzer.py          # BikeShareSystem — data loading, cleaning, analytics
-├── algorithms.py        # Custom sorting & searching + benchmarks
-├── numerical.py         # NumPy computations (distances, stats, outliers)
-├── visualization.py     # Matplotlib chart functions
-├── pricing.py           # Strategy Pattern — pricing strategies
-├── factories.py         # Factory Pattern — object creation from dicts
-├── utils.py             # Validation & formatting helpers
-├── generate_data.py     # Synthetic data generator (run once)
-├── requirements.txt     # Python dependencies
-├── data/
-│   ├── trips.csv        # Raw trip data
-│   ├── stations.csv     # Station metadata
-│   └── maintenance.csv  # Maintenance records
-├── output/
-│   ├── summary_report.txt
-│   ├── top_stations.csv
-│   ├── top_users.csv
-│   └── figures/         # Exported PNG charts
-└── tests/
-    ├── __init__.py
-    └── test_models.py   # Unit tests (pytest)
+│
+├── analyzer.py        # Data cleaning and analytics engine
+├── numerical.py       # NumPy-based calculations
+├── pricing.py         # Pricing strategies (OOP design)
+├── visualization.py   # Matplotlib charts
+├── main.py            # Entry point of the application
+│
+├── data/              # Input datasets
+└── output/            # Generated reports and figures
 ```
 
-## Setup
+---
 
-```bash
-# 1. Clone the repository
-git clone <repo-url>
-cd citybike
+## ▶️ How to Run
 
-# 2. Create a virtual environment (recommended)
-python -m venv .venv
-source .venv/bin/activate   # Linux / macOS
-# .venv\Scripts\activate    # Windows
+1. Install dependencies:
 
-# 3. Install dependencies
-pip install -r requirements.txt
+```
+pip install pandas numpy matplotlib
+```
 
-# 4. Generate sample data (already included, or regenerate)
-python generate_data.py
+2. Run the main pipeline:
 
-# 5. Run the pipeline
+```
 python main.py
 ```
 
-## Running Tests
+The script will:
 
-```bash
-pytest tests/ -v
+* Load datasets
+* Clean data
+* Run analytics
+* Generate charts
+* Export the summary report
+
+---
+
+## 🧠 Concepts Demonstrated
+
+* Data analysis workflow
+* Pandas transformations & grouping
+* NumPy vectorized operations
+* Strategy Pattern (OOP)
+* Modular Python project design
+* Git version control with structured commits
+
+---
+
+## 📷 Example Output
+
+After running the program you should find:
+
+```
+output/
+ ├── figures/
+ │    ├── trips_per_station.png
+ │    ├── monthly_trend.png
+ │    ├── duration_histogram.png
+ │    └── duration_by_user_type.png
+ └── summary_report.txt
 ```
 
-## Milestones
+---
 
-| # | Milestone               | Status |
-|---|-------------------------|--------|
-| 1 | Project Setup           | ✅     |
-| 2 | Domain Models           | 🔧     |
-| 3 | Data Loading & Cleaning | 🔧     |
-| 4 | Algorithms              | 🔧     |
-| 5 | Numerical Computing     | 🔧     |
-| 6 | Analytics               | 🔧     |
-| 7 | Visualization           | 🔧     |
-| 8 | Polish & Delivery       | ⬜     |
+## 👨‍💻 Author
 
-## Dependencies
-
-- Python 3.10+
-- pandas
-- numpy
-- matplotlib
-- pytest *(optional, for unit tests)*
-
-## License
-
-For educational use only.
+Data Science & AI Student Project — CityBike Analytics Platform
