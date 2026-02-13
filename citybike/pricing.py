@@ -13,11 +13,12 @@ from abc import ABC, abstractmethod
 
 
 # ---------------------------------------------------------------------------
-# Strategy interface
+# Strategy interface (strategy pattern)
 # ---------------------------------------------------------------------------
 
 class PricingStrategy(ABC):
     """Abstract pricing strategy — computes the cost of a trip."""
+    # (ABC) means this class is abstract and cannot be instantiated directly
 
     @abstractmethod
     def calculate_cost(
@@ -75,10 +76,7 @@ class MemberPricing(PricingStrategy):
 
     def calculate_cost(self, duration_minutes: float, distance_km: float):
         # TODO: implement the member pricing formula
-        return (
-           self.PER_MINUTE * duration_minutes
-         + self.PER_KM * distance_km
-        )
+        return (self.PER_MINUTE * duration_minutes  +  self.PER_KM * distance_km)
 
 
 class PeakHourPricing(PricingStrategy):

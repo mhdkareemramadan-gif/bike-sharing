@@ -26,7 +26,7 @@ class BikeShareSystem:
         stations: DataFrame of station metadata.
         maintenance: DataFrame of maintenance records.
     """
-
+    # loads, cleans, inspects, analyzes bike-share data and generates reports
     def __init__(self) -> None:
         self.trips: pd.DataFrame | None = None
         self.stations: pd.DataFrame | None = None
@@ -47,7 +47,7 @@ class BikeShareSystem:
         print(f"Loaded maintenance: {self.maintenance.shape}")
 
     # ------------------------------------------------------------------
-    # Data inspection (provided)
+    # Data inspection
     # ------------------------------------------------------------------
 
     def inspect_data(self) -> None:
@@ -80,13 +80,13 @@ class BikeShareSystem:
             6. Standardize categorical values
             7. Export cleaned data to data/trips_clean.csv etc.
 
-        TODO: implement each step below.
-        """
+            """
         if self.trips is None:
             raise RuntimeError("Call load_data() first")
 
         # --- Step 1: Remove duplicates ---
         self.trips = self.trips.drop_duplicates(subset=["trip_id"])
+        # subset means we only consider the "trip_id" column for identifying duplicates
         print(f"After dedup: {self.trips.shape[0]} trips")
 
         # --- Step 2: Parse dates ---
@@ -94,7 +94,7 @@ class BikeShareSystem:
         # self.trips["start_time"] = pd.to_datetime(...)
         self.trips["start_time"] = pd.to_datetime(self.trips["start_time"], errors="coerce")
         self.trips["end_time"] = pd.to_datetime(self.trips["end_time"], errors="coerce")
-        #coerce : any invalid dates to NaT
+        #coerce : any invalid dates to NaT (Not a Time).
 
         # --- Step 3: Convert numeric columns ---
         # TODO: ensure duration_minutes and distance_km are float
@@ -113,6 +113,7 @@ class BikeShareSystem:
         # --- Step 5: Remove invalid entries ---
         # TODO: drop rows where end_time < start_time
         self.trips = self.trips[self.trips["end_time"] >= self.trips["start_time"]]
+        # filter out invalid trips 
 
 
         # --- Step 6: Standardize categoricals ---
@@ -148,27 +149,6 @@ class BikeShareSystem:
         }
 
 
-    # def top_start_stations(self, n: int = 10) -> pd.DataFrame:
-    #     """Q2: Top *n* most popular start stations.
-    #     : use value_counts() or groupby on start_station_id,
-    #           merge with station names.
-    #     """
-        # Example start:
-        # counts = (
-        #     self.trips["start_station_id"]
-        #     .value_counts()
-        #     .head(n)
-        #     .reset_index()
-        # )
-
-        # counts.columns = ["station_id", "trip_count"]
-
-        # result = counts.merge(self.stations, on="station_id", how="left")
-
-        # return result[["station_name", "trip_count"]]
-
-    
-
 
     def peak_usage_hours(self):
         """Q3: Trip count by hour of day.
@@ -177,10 +157,12 @@ class BikeShareSystem:
         """
         df = self.trips.copy()
         df["hour"] = df["start_time"].dt.hour
+        #.hour means we are extracting the hour from the start_time
         return df["hour"].value_counts().sort_index()
+    
 
 
-    def busiest_day_of_week(self):
+    def busiest_day_of_week(self) -> pd.Series:
         """Q4: Trip count by day of week.
 
         TODO: extract day-of-week from start_time, count.
@@ -222,9 +204,9 @@ class BikeShareSystem:
         counts = (
             df.groupby("user_id")
             .size()
-            #size means we are counting trips(rows) per user
+            #size means we are counting trips(rows) per group (user_id)
             .reset_index(name="trip_count")
-            #.reset_index(name="trip_count") means we are converting the Series back to a DataFrame
+            #.reset_index(name="trip_count") means we are converting the Series that comes from groupby back to a DataFrame
             .sort_values("trip_count", ascending=False)
             .head(n)
         )
@@ -270,6 +252,7 @@ class BikeShareSystem:
     # ------------------------------------------------------------------
     # Add more analytics methods here
     # ------------------------------------------------------------------
+
     # Distribution of trips by user type.
     def user_type_distribution(self):
         return self.trips["user_type"].value_counts()
@@ -281,8 +264,8 @@ class BikeShareSystem:
 
     # Longest trips by duration.
     def longest_trips(self, n: int = 10):
-        cols = ["user_id", "bike_type", "start_time", "end_time", "duration_minutes", "distance_km"]
-        return self.trips[cols].sort_values("duration_minutes", ascending=False).head(n)
+        infos = ["user_id", "bike_type", "start_time", "end_time", "duration_minutes", "distance_km"]
+        return self.trips[infos].sort_values("duration_minutes", ascending=False).head(n)
 
 
 
@@ -302,6 +285,8 @@ class BikeShareSystem:
 
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         report_path = OUTPUT_DIR / "summary_report.txt"
+        # parent=True means we are creating any necessary parent directories
+        # exist_ok=True means we won't raise an error if the directory already exists
 
         lines: list[str] = []
         lines.append("=" * 60)
@@ -319,13 +304,7 @@ class BikeShareSystem:
         lines.append(f"  Total trips       : {summary['total_trips']}")
         lines.append(f"  Total distance    : {summary['total_distance_km']} km")
         lines.append(f"  Avg duration      : {summary['avg_duration_min']} min")
-
-        # --- Q2: Top start stations ---
-        # TODO: uncomment once top_start_stations() is implemented
-        # top_stations = self.top_start_stations()
-        # lines.append("\n--- Top 10 Start Stations ---")
-        # lines.append(top_stations.to_string(index=False))
-
+        
         # --- Q3: Peak usage hours ---
         # TODO: uncomment once peak_usage_hours() is implemented
         hours = self.peak_usage_hours()
@@ -357,6 +336,8 @@ class BikeShareSystem:
         top_users = self.top_active_users()
         lines.append("\n--- Top Active Users ---")
         lines.append(top_users.to_string(index=False))
+        # to_string(index=False) ensures no index is printed
+
 
 
         # --- Q10: Top routes ---

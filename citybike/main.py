@@ -41,12 +41,12 @@ def main() -> None:
     print(f"  Total trips      : {summary['total_trips']}")
     print(f"  Total distance   : {summary['total_distance_km']} km")
     print(f"  Avg duration     : {summary['avg_duration_min']} min")
-    print(system.peak_usage_hours())
-    print(system.busiest_day_of_week())
-    print(system.avg_distance_by_user_type())
-    print(system.monthly_trip_trend())
-    print(system.top_active_users(10))
-    print(system.top_routes(5))
+    print(f"  Peak usage hours : {system.peak_usage_hours()}")
+    print(f"  Busiest day      : {system.busiest_day_of_week()}")
+    print(f"  Avg distance by user type : {system.avg_distance_by_user_type()}")
+    print(f"  Monthly trip trend: {system.monthly_trip_trend()}")
+    print(f"  Top active users  : {system.top_active_users(10)}")
+    print(f"  Top routes       : {system.top_routes(5)}")
     print(system.maintenance_cost_by_bike_type())
 
     

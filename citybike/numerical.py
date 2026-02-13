@@ -5,7 +5,7 @@ Students should implement:
     - Station distance matrix using Euclidean distance
     - Vectorized trip statistics (mean, median, std, percentiles)
     - Outlier detection using z-scores
-    - Vectorized fare calculation across all trips
+    - Vectorized fare calculation across all trips  
 """
 
 import numpy as np
@@ -79,6 +79,8 @@ def trip_duration_stats(durations: np.ndarray) -> dict[str, float]:
         "p75": float(np.percentile(durations, 75)),
         "p90": float(np.percentile(durations, 90)),
     }
+
+#(np.float64) normally is the output from numpy functions so we convert it to float
 
 
 # ---------------------------------------------------------------------------
@@ -162,7 +164,7 @@ def calculate_fares(
         # trip 2: 1.0 + 0.15*20 + 0.10*5.0 = 4.50
         # trip 3: 1.0 + 0.15*30 + 0.10*8.0 = 6.30
     """
-    # With NumPy, you can compute this for ALL trips at once because
+    # With NumPy, you can compute this for ALL trips at once because numpy arrays support element-wise operations.
     # fares = unlock_fee + per_minute * durations + per_km * distances
     # This single line replaces a Python for-loop over every trip.
 
